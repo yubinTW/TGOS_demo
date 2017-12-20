@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<title>WMS</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url + "&AppID=" + config.AppID + "&APIKey=" + config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+
+	<script type="text/javascript">
+		var WMSLayer = new Array();	//宣告一個空的變數, 準備承接WMS物件使用
+		var mapOptions = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+        function init() {
+        	mDiv = document.getElementById("TGMap");
+        	map = new TGOS.TGOnlineMap(mDiv, TGOS.TGCoordSys.EPSG3857, mapOptions);
+
+        	
+        };
+
+        function addWms(){
+			var tUrl = document.getElementById('wmsUrl').value;  //取出WMS連結
+			console.log(tUrl);
+			var WMS = new TGOS.TGWmsLayer(tUrl, {
+			//建立WMS物件, 加入WMS連結, 並指定相關屬性
+				map: map,
+				preserveViewport: true,
+				zIndex: 999,
+				wsVisible: true,
+				opacity:1
+			});
+			WMSLayer.push(WMS);
+		}
+
+		function deleteWms(){
+			if (WMSLayer.length > 0) {
+				for(var i = 0; i < WMSLayer.length; i++)
+				{
+					WMSLayer[i].removeWmsLayer();	//當圖面上存在WMS圖層時, 將該圖層移除
+				}
+			} else {
+				alert('圖面上不存在WMS圖層');
+			}
+		}
+
+
+        </script>
+
+    </head>
+
+    <body onload="init();">
+
+    	<div id="TGMap" style="width: 800px; height: 600px; border: 1px solid #C0C0C0;"></div>
+		
+		<input id="wmsUrl" type="text" size="80" value="http://gis.moeacgs.gov.tw/geo4oracle/mapagent/mapagent.fcgi?Request=GetMap&SERVICE=WMS&VERSION=1.1.1&BGCOLOR=0xFFFFFF&TRANSPARENT=TRUE&SRS=EPSG:4326&FORMAT=image/png&layers=GWH/LAYER/AT_FAU_2013&BBOX=118,21,123,26&width=600&height=600"/><br/>
+		<input type="button" value="加入WMS" onclick="addWms();"/>
+		<input type="button" value="刪除全部WMS" onclick="deleteWms();"/>
+
+    </body>
+
+    </html>

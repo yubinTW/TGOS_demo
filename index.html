@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<title>TGOS MAP DEMO</title>
+
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url+"&AppID="+config.AppID+"&APIKey="+config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+
+	<script type="text/javascript">
+
+		var mapOption = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+
+		var clusterOption ={
+			"bounds": 15,
+			"maxZoom": 12,
+		}
+
+
+		function InitWnd() {
+
+			var pOMap = document.getElementById("TGMap");
+			var pMap = new TGOS.TGOnlineMap(pOMap, TGOS.TGCoordSys.EPSG3857);
+			pMap.setOptions(mapOption);
+
+			marker_1 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9969153, 24.783003), "安研科技");
+			marker_2 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9968965, 24.786062), "交通大學");
+			marker_3 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(121.038108, 24.8081952), "新竹高鐵站");
+			marker_4 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9910429, 24.7947302), "清華大學");
+
+			InfoWindowOptions = {
+              maxWidth:4000, //訊息視窗的最大寬度
+              pixelOffset: new TGOS.TGSize(5, -30), //InfoWindow起始位置的偏移量, 使用TGSize設定, 向右X為正, 向上Y為負  
+              zIndex:99, //視窗堆疊順序
+              disableAutoPan: false
+        	};	
+        	messageBox_1 = new TGOS.TGInfoWindow("安研科技", marker_1.getPosition(), InfoWindowOptions);
+        	messageBox_1.setContent("<h1>Anasystem</h1><img src='http://www.anasystem.com.tw/wp-content/uploads/anasystemlogo.png'>");
+
+        	TGOS.TGEvent.addListener(marker_1, "mouseover", openInfoWindow);//滑鼠監聽事件
+			TGOS.TGEvent.addListener(marker_1, "mouseout", closeInfoWindow);
+
+			cluster = new TGOS.TGMarkerCluster(pMap, 
+				[marker_1, marker_2, marker_3, marker_4], clusterOption);
+			cluster.redrawAll();
+
+			function openInfoWindow()
+            {		
+				messageBox_1.open(pMap);
+            }
+			function closeInfoWindow(){
+				messageBox_1.close();
+			}
+
+			// measure Service
+			var measureServ = new TGOS.TGMeasureService();
+			
+
+		} // end of InitWnd()
+
+
+
+	</script>
+
+</head>
+
+<body style="margin: 0px" onload="InitWnd();">
+
+	<div id="TGMap" style="width: 800px; height: 600px; border: 1px solid #C0C0C0;">
+
+	</div>
+	
+</body>
+
+</html>

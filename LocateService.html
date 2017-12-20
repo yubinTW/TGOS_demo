@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<title>LocateService</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url+"&AppID="+config.AppID+"&APIKey="+config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+
+	<script type="text/javascript">
+
+		var mapOptions = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+
+		
+		var addressInput;
+		var mDiv, map;
+		var marker;
+		function locate() {
+        	var locator = new TGOS.TGLocateService();  //宣告定位物件
+            locator.locateWGS84({  //指定回傳結果為locateWGS84坐標系統
+                address : addressInput.value  //要求地址定位
+            }, function(e, status) {
+            	if (status != TGOS.TGLocatorStatus.OK) {
+            		return;
+            	}
+            	marker.setVisible(true);
+                marker.setPosition(e[0].geometry.location);  //將定位結果以標記顯示
+                map.fitBounds(e[0].geometry.viewport);	//將地圖畫面移至符合查詢之位置				
+				
+                let x = e[0].geometry.location.x;
+                let y = e[0].geometry.location.y;
+
+				document.getElementById("addrXY_WGS84").innerHTML = "X坐標：" + x + "，Y坐標：" + y;  //在addrXY Div中顯示地址坐標
+				var TT = new TGOS.TGTransformation();
+				TT.wgs84totwd97(x, y);
+				document.getElementById("addrXY_TWD97").innerHTML = "X坐標：" + TT.transResult.x + "，Y坐標：" + TT.transResult.y;
+
+			});
+        }
+        function main() {
+        	mDiv = document.getElementById("TGMap");
+
+        	map = new TGOS.TGOnlineMap(mDiv, TGOS.TGCoordSys.EPSG3857, mapOptions);
+        	marker = new TGOS.TGMarker(map, new TGOS.TGPoint(0, 0));
+        	marker.setVisible(false);
+        	addressInput = document.getElementById('address');
+        };
+
+
+        </script>
+
+    </head>
+
+    <body onload="main();">
+        <h1 style="text-align:center;">LocateService</h1>
+    	<div id="TGMap" style="width: 800px; height: 600px; border: 1px solid #C0C0C0;"></div>
+		WGS84
+		<div id="addrXY_WGS84" style="width:640px;height:25px;border: 1px solid #C0C0C0;"></div>
+    	TWD97
+    	<div id="addrXY_TWD97" style="width:640px;height:25px;border: 1px solid #C0C0C0;"></div>
+    	
+    	輸入地址：<br>
+    	<input style="width:40%" id='address' value='臺北市中山區松江路469巷4號'>
+    	<input type="submit" value="地址定位" onclick="locate()">
+    </body>
+
+    </html>

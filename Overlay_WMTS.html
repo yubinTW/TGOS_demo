@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<title>WMTS</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<style>
+		span{
+			display: inline-block;
+
+		}
+		input[range]{
+			display: inline-block;
+			width: 300px;
+		}
+
+	</style>
+	
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url + "&AppID=" + config.AppID + "&APIKey=" + config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+
+	<script type="text/javascript">
+		var WMTSLayers = [];
+		var default_opacity = 0.65;
+		var mapOptions = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+		function init() {
+			mDiv = document.getElementById("TGMap");
+			pMap = new TGOS.TGOnlineMap(mDiv, TGOS.TGCoordSys.EPSG3857, mapOptions);
+
+
+		};
+
+		function addWmts() {
+			var layer_id = document.getElementById('layer-select').value;
+			var Bounds = pMap.getBounds();
+			var src = "http://gis.sinica.edu.tw/tileserver/wmts";
+			var info = {
+				matrixSet: 'GoogleMapsCompatible',	//MatrixSet設定, 必要參數, 可進WMTS的Capabilities去看所需圖層使用的MatrixSet
+				layer: layer_id,	//Layer Name, 必要參數
+				format: "image/jpeg",
+		        style: "default"
+			};
+			var req = {
+				wmtsVisible: true,
+				//zIndex: 50,
+				opacity: default_opacity
+			};
+			WMTSLayer = new TGOS.TGWmtsLayer(src, pMap, info, req);
+		    WMTSLayers.push(WMTSLayer);
+		    
+		    item = document.createElement("div");
+		    //item.style = "display: flex;";
+		    title = document.createElement("span");
+		    title.appendChild(document.createTextNode(layer_id));
+		    item.appendChild(title);
+		    range = document.createElement("input");
+		    range.setAttribute("type", "range");
+		    range.setAttribute("min", "0");
+		    range.setAttribute("max", "1");
+		    range.setAttribute("step", "any");
+		    range.setAttribute("value", default_opacity);
+		    range.setAttribute("oninput", "setOpacity("+ (WMTSLayers.length-1) +","+"this)");
+		    item.appendChild(range);
+		    document.getElementById('content').appendChild(item);
+		}
+
+		function ClearWMTS(){
+			if (WMTSLayers.length > 0) {
+				for(var i = 0; i < WMTSLayers.length; i++)
+				{
+					console.log(WMTSLayers[i]);
+					WMTSLayers[i].removeWmtsLayer();	//當圖面上存在WMTS圖層時, 將該圖層移除
+				}
+				WMTSLayers = [];
+				content = document.getElementById('content');
+				while(content.hasChildNodes())
+					content.removeChild(content.lastChild);
+			} else {
+				alert('圖面上不存在WMTS圖層');
+			}
+		}
+
+		function setOpacity(i, input_range){
+			WMTSLayers[i].setTileOpacity(Number(input_range.value));
+		}
+
+		
+	</script>
+
+</head>
+
+<body onload="init();">
+
+	<div id="TGMap" style="width: 800px; height: 600px; border: 1px solid #C0C0C0;"></div>
+	<select name="layer-select" id="layer-select">
+		<option value="1956_Landuse">1956-臺灣土地利用及林型圖</option> 
+		<option value="AM50K_1944">1944-美軍地形圖-1:50,000</option> 
+		<option value="Admin_1901a">1901-日治行政區-廳(1900年代)</option> 
+		<option value="Admin_1901b">1901-日治行政區-堡里(1900年代)</option> 
+		<option value="Admin_1901c">1901-日治行政區-街庄(1900年代)</option> 
+		<option value="Admin_1930a">1930-日治行政區-州廳(1930年代)</option> 
+		<option value="Admin_1930b">1930-日治行政區-郡市(1930年代)</option> 
+		<option value="Admin_1930c">1930-日治行政區-街庄(1930年代)</option> 
+		<option value="JM100K_1905">1905-日治臺灣圖-1:100,000</option> 
+		<option value="JM200K_1897">1897-日治臺灣假製二十萬分一圖-1:200,000</option> 
+		<option value="JM200K_1932">1932-二十萬分一帝國圖(臺灣部分)</option> 
+		<option value="JM20K_1904">1904-日治臺灣堡圖(明治版)-1:20,000</option> 
+		<option value="JM20K_1921">1921-日治臺灣堡圖(大正版)-1:20,000</option> 
+		<option value="JM25K_1921">1921-日治地形圖-1:25,000</option> 
+		<option value="JM25K_1942">1942-日治二萬五千分之一地形圖(昭和修正版)</option> 
+		<option value="JM25K_1944">1944-日治地形圖(航照修正版)-1:25,000</option> 
+		<option value="JM300K_1924">1924-日治臺灣全圖(第三版)-1:300,000</option> 
+		<option value="JM300K_1939">1939-日治臺灣全圖(第五版)-1:300,000</option> 
+		<option value="JM400K_1899">1899-日治臺灣全圖-1:400,000</option> 
+		<option value="JM500K_1936">1936-五十萬分一輿地圖(臺灣部分)-1:500,000</option> 
+		<option value="JM50K_1916">1916-日治蕃地地形圖-1:50,000</option> 
+		<option value="JM50K_1920">1920-日治地形圖(總督府土木局)-1:50,000</option> 
+		<option value="JM50K_1924">1924-日治地形圖(陸地測量部)-1:50,000</option> 
+		<option value="JM50K_1924_new">1924-日治地形圖(陸地測量部)-1:50,000</option> 
+		<option value="Map_LSB1_Hualien">1914-日治官有林野圖</option> 
+		<option value="TM100K_1987">1987-臺灣地形圖-1:100,000</option> 
+		<option value="TM25K_1989">1989-臺灣經建1版地形圖-1:25,000</option> 
+		<option value="TM25K_1993">1993-臺灣經建2版地形圖-1:25,000</option> 
+		<option value="TM25K_2001">2001-臺灣經建3版地形圖-1:25,000</option> 
+		<option value="TM25K_2003">2003-臺灣經建4版地形圖-1:25,000</option> 
+		<option value="TM50K_1956">1956-臺灣地形圖-1:50,000</option> 
+		<option value="TM50K_1966">1966-臺灣省水利工程、水文站及基準點位置圖</option> 
+		<option value="TM50K_1990">1990-臺灣經建1版地形圖-1:50,000</option> 
+		<option value="TM50K_1996">1996-臺灣經建2版地形圖-1:50,000</option> 
+		<option value="TM50K_2002">2002-臺灣經建3版地形圖-1:50,000</option> 
+		<option value="Taipei_aerialphoto_1945">美軍航照影像(1945/6/17攝)</option> 
+	</select>
+	<input type="button" value="加入WMTS" onclick="addWmts();"/>
+	<input type="button" value="刪除全部WMTS" onclick="ClearWMTS();"/>
+	<div id="content">
+		
+	</div>
+
+</body>
+
+</html>

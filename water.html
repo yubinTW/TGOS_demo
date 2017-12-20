@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Water TGOS Map</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="dist/themes/default/style.min.css" />
+	 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+	
+	<style>
+		.content{
+			display: flex;
+		}
+
+		#Menu{
+			width: 200px;
+			height: 100vh;
+			position: absolute;
+			display: flex;
+			flex-direction: column;
+			background-color: gray;
+		}
+		#Menu-Open-Btn{
+			width:50px;
+			min-width: 50px;
+			display: block;
+			position: absolute;
+			z-index: 10;
+		}
+		#Menu-Close-Btn{
+			text-align: center;
+			background-color: lightgray;
+		}
+		#Menu-Content{
+			height:100%;
+		}
+		/*
+		#Map-Content{
+			width: 100%;
+			left:50px;
+			position: absolute;
+		}*/
+		#TGMap{
+			width: 100%;
+			height: 100vh;
+			box-sizing: content-box;
+			position: absolute;
+		}
+		#stations-infos-close-btn{
+			position: absolute;
+			right: 15px;
+			top: 10px;
+			cursor: pointer;
+		}
+		#Station-Infos-Tab{
+			width: 100%;
+			height: 200px;
+			position: absolute;
+			bottom: 0px;
+		}
+		#tabs-header{
+			height: 42px;
+		}
+		.tabs-content{
+			position: absolute;
+			overflow: auto;
+			height:75%;
+		}
+		.hide{
+			display: none;
+		}
+	</style>
+
+</head>
+<body onload="init();">
+	<div class="content">
+		
+		<!-- Sidebar -->
+		<div class="w3-sidebar w3-bar-block w3-border-right hide" style="width:300px;" id="mySidebar">
+		  	<button id="Menu-Close-Btn" onclick="menu_tab_close()" class="w3-bar-item w3-button w3-display-bottommiddle">Close &times;</button>
+			<!-- menu tabls -->
+			<div id="Menu-Tab">
+				<div>
+				  <ul id="tabs-header">
+				    <li data-toggle="tooltip" data-placement="bottom" title="監測站清單" data-trigger="hover">
+				    	<a href="#tabs-1">
+				    		<i class="fa fa-map-marker" aria-hidden="true"></i>
+						</a>
+					</li>
+				    <li data-toggle="tooltip" data-placement="bottom" title="監測項目即時數據顯示" data-trigger="hover">
+				    	<a href="#tabs-2">
+				    		<i class="fa fa-eye" aria-hidden="true"></i>
+						</a>
+					</li>
+				    <li data-toggle="tooltip" data-placement="bottom" title="WMS圖層顯示" data-trigger="hover">
+				    	<a href="#tabs-3">
+				    		<i class="fa fa-picture-o" aria-hidden="true"></i>
+						</a>
+					</li>
+				    <li data-toggle="tooltip" data-placement="bottom" title="地圖工具" data-trigger="hover">
+				    	<a href="#tabs-4">
+				    		<i class="fa fa-wrench" aria-hidden="true"></i>
+						</a>
+					</li>
+				  </ul>
+
+			  	</div>
+			  <div id="tabs-1">
+			  	<h2>監測站清單</h2>
+			    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptates, natus.</p>
+			  </div>
+			  <div id="tabs-2">
+			  	<h2>監測項目即時數據顯示</h2>
+			    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ullam, nulla!</p>
+			  </div>
+			  <div id="tabs-3">
+			  	<h2>WMS圖層顯示</h2>
+			    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Officiis, provident.</p>
+			  </div>
+			  <div id="tabs-4">
+			  	<h2>地圖工具</h2>
+			  		<h3>測量服務</h3>
+				  		<button id="btn-measure-line" onclick="startDrawingLine();" class="btn btn-info">計算距離</button>
+						<button id="btn-measure-area" onclick="startDrawingArea();" class="btn btn-info">計算面積</button>
+						<button id="btn-measure-clear" onclick="clearAllGraphics();" class="btn btn-danger">清除</button>
+						<p id="tips" class="result"></p>
+			  		<h3>地址查詢</h3>
+				  		<input id="address" type="text" style="width:100%;display: inline-block;" class="form-control">
+						<button id="btn-locate-service" onclick="locate();" class="btn btn-success">定位</button>
+						<button id="btn-locate-clear" onclick="clearLocate();" class="btn btn-danger">清除</button>
+						<p id="addrXY_WGS84" class="result"></p>
+						<p id="addrXY_TWD97" class="result"></p>
+			  </div>
+			</div>  <!-- end if Menu-Tab -->
+		</div>   <!-- end of Sidebar -->
+	
+
+		<button id="Menu-Open-Btn" class="w3-teal w3-button" onclick="menu_tab_open()">
+			<i class="fa fa-bars" aria-hidden="true"></i>
+		</button>
+
+
+			<div class="" id="TGMap"></div>		
+	
+			<div id="Station-Infos-Tab">
+				<div>
+				    <ul id="stations-infos-tabs-header">
+					    <li><a href="#tabs-1">即時監測資料</a></li>
+					    <li><a href="#tabs-2">趨勢圖</a></li>
+					    <li><a href="#tabs-3">監測影像</a></li>
+					    <li><a href="#tabs-4">測站資訊</a></li>
+					    
+				    </ul>
+			  	</div>
+			  	<i id="stations-infos-close-btn" class="fa fa-times" aria-hidden="true" onclick="hide_station_infos_info();"></i>
+				  <div id="tabs-1" class="tabs-content">
+				    <p>Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu.</p>
+				  </div>
+				  <div id="tabs-2" class="tabs-content">
+				    <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra </p>
+				  </div>
+				  <div id="tabs-3" class="tabs-content">
+				    <p>Mauris eleifend est et turpism, accusamus cupiditate quaerat quod fuga corporis nisi officiis non, consectetur odit reiciendis perspiciatis recusandae unde. Aut animi iure iste, vel sint vero beatae, nisi veniam quae modi, provident laboriosam!</p>
+				    <p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac </p>
+				  </div>
+				  <div id="tabs-4" class="tabs-content">
+				  		交通大學
+				  </div>
+				</div> <!-- end of Station-Infos-Tabs -->
+				
+		
+		
+	</div>
+	
+	
+	<!-- javascript -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  	<script src="dist/jstree.min.js"></script>
+	
+
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url + "&AppID=" + config.AppID + "&APIKey=" + config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+	<script type="text/javascript" src="water.js"></script>
+	<script type="text/javascript">
+		function menu_tab_open() {
+		    document.getElementById("mySidebar").classList.toggle('hide');
+		    document.getElementById("Menu-Open-Btn").style.visibility= 'hidden';
+		    document.getElementById("TGMap").style.left = "300px";
+		    document.getElementById("Station-Infos-Tab").style.left = "300px";
+		}
+		function menu_tab_close() {
+		    document.getElementById("mySidebar").classList.toggle('hide');
+		    document.getElementById("Menu-Open-Btn").style.visibility= 'visible';
+		    document.getElementById("TGMap").style.left = "0px";
+		    document.getElementById("Station-Infos-Tab").style.left = "0px";
+		}
+		$( function() {
+			$('#Menu-Tab').tabs();
+			$('#Station-Infos-Tab').tabs();
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+		function hide_station_infos_info(){
+			document.getElementById("Station-Infos-Tab").classList.toggle('hide');
+		}
+		
+	</script>
+
+</body>
+</html>
