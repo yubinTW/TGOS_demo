@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<title>PNG</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+	
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url + "&AppID=" + config.AppID + "&APIKey=" + config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+
+	<script type="text/javascript">
+		var WMSLayer = new Array();	//宣告一個空的變數, 準備承接WMS物件使用
+		var mapOptions = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+        function init() {
+        	mDiv = document.getElementById("TGMap");
+        	map = new TGOS.TGOnlineMap(mDiv, TGOS.TGCoordSys.EPSG3857, mapOptions);
+
+        	TGOS.TGEvent.addListener(map,'click', function(e){
+        		console.log(e.point.x +" "+ e.point.y);
+        	});
+
+        	let rain_url = 'https://alerts.ncdr.nat.gov.tw/DownLoadNewAssistData.ashx/9';
+			let GOL = new TGOS.TGGroundOverlay();  //新增一個TGGroundOverlay物件
+			let image = new TGOS.TGImage();  //新增一個TGImage物件, 準備將此影像疊加
+			image.setUrl(rain_url);
+			GOL.setImage(image);
+			GOL.setBounds(new TGOS.TGEnvelope(120.023, 25.315, 122.005, 21.89)); // 雨量圖的Bounds，參考sneslink2.0的設定(Senslink2NoSQL\Senslink\Views\Map\Index 第196行)
+			//以TGEnvelope物件定義套疊影像的範圍
+			GOL.setOpacity(0.7);  //設定套疊影像的透明度
+			GOL.setMap(map);  //設定要套疊影像的地圖
+
+        	
+        }; // end of init()
+
+
+        </script>
+
+    </head>
+
+    <body onload="init();">
+
+    	<div id="TGMap" style="width: 1000px; height: 600px; border: 1px solid #C0C0C0;"></div>
+		
+		<input id="wmsUrl" type="text" size="80" value="http://gis.moeacgs.gov.tw/geo4oracle/mapagent/mapagent.fcgi?Request=GetMap&SERVICE=WMS&VERSION=1.1.1&BGCOLOR=0xFFFFFF&TRANSPARENT=TRUE&SRS=EPSG:4326&FORMAT=image/png&layers=GWH/LAYER/AT_FAU_2013&BBOX=118,21,123,26&width=600&height=600"/><br/>
+		<input type="button" value="加入PNG" onclick="addWms();"/>
+		<input type="button" value="刪除全部PNG" onclick="deleteWms();"/>
+
+    </body>
+
+    </html>
