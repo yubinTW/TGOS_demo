@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	
+	<title>TGOS MAP DEMO</title>
+	<style>
+		.pqTable {
+			background-color: #EEE;
+		}
+		.pqTable:hover {
+			background-color: #CCC;
+		}
+	</style>
+
+	<script type="text/javascript" src="./api.conf"></script>
+	<script>
+		url = "http://api.tgos.tw/TGOS_API/tgos?ver=2";
+		api_url = url+"&AppID="+config.AppID+"&APIKey="+config.APIKey;
+		var script   = document.createElement("script");
+		script.type  = "text/javascript";
+		script.src   = api_url; 
+		document.head.appendChild(script);
+	</script>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript">
+
+		var mapOption = {
+			"mapTypeControl":false, // 顯示地圖類型控制選項
+		};
+
+		var clusterOption ={
+			"bounds": 15,
+			"maxZoom": 12,
+		}
+
+		data = [
+			{ 
+				Id: "安研科技",
+				Latitude: 24.783003,
+				Longitude: 120.9969153
+			},
+			{
+				Id: "新竹高鐵站",
+				Latitude: 24.8081952,
+				Longitude: 121.038108
+			}
+		];
+
+		var CustomLayer = function (map,data) {
+            this.setMap(map);
+            this.data = data;
+        }
+        //繼承TGOS.TGOverlayView
+        CustomLayer.prototype = new TGOS.TGOverlayView();
+        //實做onAdd，設定疊加層
+		var layer = "";
+        CustomLayer.prototype.onAdd = function () {
+            //取得欲套疊的地圖承載層
+            var panes = this.getPanes();
+            var mapLayer = panes.overlayviewLayer;
+
+			//設定疊加層座標系統
+            this.mSRS = this.map.getCoordSys();
+			
+			//設定疊加層HTML 物件(DIV)
+            this.div = document.createElement("div");
+			this.div.id = "d3Div";
+			this.div.style.position = "absolute";
+			
+			//設定定疊加層寬度
+            this.div.style.width = "100%";
+			
+            //設定定疊加層高度
+			this.div.style.height = "100%";
+			this.div.className = "stations";
+			
+			//設定定疊加層HTML物件 Style
+			this.div.style.zIndex = 1000;
+			
+			//將div加入至現有圖層中
+            mapLayer.appendChild(this.div);
+			var width = this.width,
+				height = this.height;
+			this.layer = d3.select("#d3Div");
+			
+			// pqTable
+
+        }
+		
+        //實做onDraw
+        CustomLayer.prototype.onDraw = function () {
+			var proj = this.getProjection();
+        	// create table
+        	let columns = ['pqName','time','value','siunit'];
+        	let table = d3.select('#d3Div')
+        		.selectAll('table')
+        		.data(data)
+        		.each(transform)
+        		.enter()
+        		.append('table')
+        		.attr('class', 'pqTable')
+        		.style('position', 'absolute')
+        		.on('mouseover', function(){
+        			this.style.zIndex = 999;
+        		})
+        		.on('mouseout', function(){
+        			this.style.zIndex = 100;
+        		});
+
+        	//let thead = table.append('thead');
+        	let tbody = table.append('tbody');
+        	/*
+        	thead.append('tr')
+        		.selectAll('th')
+        		.data(columns)
+        		.enter()
+        		.append('th')
+        		.text(d=>d);
+        		*/
+        	let rows = tbody
+        		.selectAll('tr')
+        		.data([
+        				{'pqName':'水位', 'time':'13:59:59', 'value':'123.456', 'siunit':'mm'},
+        				{'pqName':'總水位','time':'13:59:59','value': '123.456', 'siunit':'mm'},
+        			])
+        		.enter()
+        		.append('tr');
+        	let cells = rows.selectAll('td')
+        		.data(function(row){
+        			return columns.map(function(column){
+        				return {column: column, value: row[column]};
+        			})
+        		})
+        		.enter()
+        		.append('td')
+        		.text(function(d){
+        			return d.value;
+        		});
+
+			
+			/*
+            var _marker = this.layer.selectAll("p")
+              .data(data)
+              .each(transform)
+			  .enter()
+			  .append("p")
+              .each(transform)
+              .text(function(d){
+			  	return d.Id;
+			  })
+			  .style("cursor", "pointer")
+			  .style('position','absolute')
+			  .style('padding', '0')
+			  .style('margin', '0')
+			  .on('click', function(d) {
+			  });
+			*/	
+			  
+            // transform function. 指定每個點的座標.
+            function transform(d) {
+                //將地圖座標轉換成相對於地圖div左上角的螢幕座標
+                var pt = new TGOS.TGPoint(d.Longitude,d.Latitude);
+                var p = proj.fromMapToDiv(pt);
+                return d3.select(this)
+					.style("left", (p.x ) + "px")
+                	.style("top", (p.y +2 ) + "px");
+            }
+        }
+		
+        //實做onRemove
+        CustomLayer.prototype.onRemove = function () {
+            this.div.parentNode.removeChild(this.div);
+            this.div = null;
+        }
+
+		function InitWnd() {
+
+			var pOMap = document.getElementById("TGMap");
+			var pMap = new TGOS.TGOnlineMap(pOMap, TGOS.TGCoordSys.EPSG3857);
+			pMap.setOptions(mapOption);
+
+			marker_1 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9969153, 24.783003), "安研科技");
+			marker_2 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9968965, 24.786062), "交通大學");
+			marker_3 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(121.038108, 24.8081952), "新竹高鐵站");
+			marker_4 = new TGOS.TGMarker(pMap, new TGOS.TGPoint(120.9910429, 24.7947302), "清華大學");
+
+			
+			pqLayer = new CustomLayer(pMap, data);
+
+		} // end of InitWnd()
+
+
+
+
+
+
+
+	</script>
+
+</head>
+
+<body style="margin: 0px" onload="InitWnd();">
+
+	<div id="TGMap" style="width: 800px; height: 600px; border: 1px solid #C0C0C0;">
+
+	</div>
+	
+</body>
+
+</html>
