@@ -37,7 +37,7 @@
 			"maxZoom": 12,
 		}
 
-		data = [
+		let data = [
 			{ 
 				Id: "安研科技",
 				Latitude: 24.783003,
@@ -83,8 +83,6 @@
 			
 			//將div加入至現有圖層中
             mapLayer.appendChild(this.div);
-			var width = this.width,
-				height = this.height;
 			this.layer = d3.select("#d3Div");
 			
 			// pqTable
@@ -112,7 +110,7 @@
         		});
 
         	//let thead = table.append('thead');
-        	let tbody = table.append('tbody');
+        	//let tbody = table.append('tbody');
         	/*
         	thead.append('tr')
         		.selectAll('th')
@@ -121,7 +119,7 @@
         		.append('th')
         		.text(d=>d);
         		*/
-        	let rows = tbody
+        	let rows = table
         		.selectAll('tr')
         		.data([
         				{'pqName':'水位', 'time':'13:59:59', 'value':'123.456', 'siunit':'mm'},
